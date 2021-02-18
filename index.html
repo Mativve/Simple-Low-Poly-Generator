@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Low Poly Generator</title>
+
+    <!-- Light styles -->
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/spectre.css/0.5.8/spectre.min.css'/>
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/spectre.css/0.5.8/spectre-exp.min.css'/>
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/spectre.css/0.5.8/spectre-icons.min.css'/>
+
+    <!-- Dark styles -->
+    <link rel='stylesheet' href='assets/dark/spectre.min.css'/>
+    <link rel='stylesheet' href='assets/dark/spectre-exp.min.css'/>
+    <link rel='stylesheet' href='assets/dark/spectre-icons.min.css'/>
+
+    <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Jost:wght@300;500;700&family=Megrim&display=swap'>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/nano.min.css"/> <!-- 'nano' theme -->
+
+    <link rel='stylesheet' href='assets/styles/main.css'>
+
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+    
+    <div id="app" class="app">
+        <header class="navbar">
+            <section class="navbar-section">
+                <h1 class="navbar-brand text-primary">Simple Low Poly Generator</h1>
+            </section>
+            <section class="navbar-section">
+                <button class="btn btn-link" @class="{active: help}" @click="toggleHelp"><i data-feather="info"></i>
+                    <span v-if="help === false">Show info</span>
+                    <span v-if="help === true">Hide info</span>
+                </button>
+
+                <button class="btn btn-link" @click="toggleTheme">
+                    <i v-if="darkTheme === false" data-feather="moon" class="mr-0"></i>
+                    <i v-if="darkTheme === true" data-feather="sun" class="mr-0"></i>
+                </button>
+            </section>
+        </header>
+
+        <main class="main">
+            <div class="app-tab generator">
+                <div class="container">
+                    <div class="columns">
+                        <div class="column col-9 preview" id="trianglify">
+                            <!--- CANVAS --->
+                        </div>
+                        <div class="column col-3 sidebar p-0">
+                            <div class="btn-group btn-group-block p-0">
+                                <button class="btn btn-secondary" v-bind:class="{ active: ((sidebar === 'settings')) }" type="button" @click="setSidebar('settings')">Settings</button>
+                                <button class="btn btn-secondary" v-bind:class="{ active: ((sidebar === 'palette')) }" type="button" @click="setSidebar('palette')">Palette</button>
+                                <button class="btn btn-secondary" v-bind:class="{ active: ((sidebar === 'colors')) }" type="button" @click="setSidebar('colors')">Custom colors</button>
+                            </div>
+                            
+                            <div class="sidebar-inner" v-if="(sidebar === 'settings')">
+                                <form action="">
+                                    <div class="form-group">
+                                        <label class="form-label" for="width">Dimensions (px)</label>
+                                        <div class="input-group">
+                                            <input class="form-input" type="number" id="width" placeholder="1920" value="cfg.width" min="10" max="3840" step="10" value="1920" v-model="cfg.width" v-on:input="onUpdate">
+                                            <input class="form-input" type="number" id="height" placeholder="1080" value="cfg.width" min="10" max="3840" step="10" value="1080" v-model="cfg.height" v-on:input="onUpdate">
+                                        </div>
+                                        <p class="form-input-hint"><small>Preffered: 1920 | 1080</small><br/><span v-if="help"><small>[width / height] Specify the width and height in pixels of the pattern to generate.</small><br/><small>Min: 1; Max: 2560</small></span></p>
+                                    </div>
+    
+                                    <div class="form-group">
+                                        <label class="form-label" for="cell_size">Cell size <small v-if="help">[{{ returnFormatNumberString(cfg.cell_size) }}]</small></label>
+                                        <input class="slider" type="range" min="50" max="300" step="10" id="cell_size" v-model="cfg.cell_size" v-on:input="onUpdate">
+    
+                                        <p class="form-input-hint" v-if="help"><small>Specify the size of the mesh used to generate triangles.</small></p>
+                                    </div>
+    
+                                    <div class="form-group">
+                                        <label class="form-label" for="variance">Variance <small v-if="help">[{{ returnFormatNumberString(cfg.variance) }}]</small></label>
+                                        <input class="slider" type="range" min="0" max="1" step="0.1" id="variance" v-model="cfg.variance" v-on:input="onUpdate">
+    
+                                        <p class="form-input-hint" v-if="help"><small>Specify the size of the mesh used to generate triangles.</small></p>
+                                    </div>
+    
+                                    <div class="form-group">
+                                        <label class="form-label" for="seed">Seed</label>
+
+                                        <div class="input-group">
+                                            <input class="form-input" type="text" id="seed" value="cfg.seed" v-model="cfg.seed" v-on:input="onUpdate">
+                                            <button class="btn btn-primary input-group-btn tooltip" @click="randomSeed" type="button"data-tooltip="Random Seed"><i data-feather="refresh-cw" class="mr-0"></i></button>
+                                        </div>
+    
+                                        <p class="form-input-hint" v-if="help"><small> Seeds the random number/text generator to create repeatable patterns.</small><br/><small>Empty = random</small></p>
+                                    </div>
+
+                                </form>
+                            </div>
+
+                            <div class="sidebar-inner" v-if="(sidebar === 'palette')">
+                                <div class="color-list" v-if="!customColors">
+                                    <div class="color-item" v-for="(color, i) of arrayColors">
+                                        <button class="color-item-preview" @click="setGradient(i)" v-bind:class="{ selected: ((pickGradient == i)) }" :style="color.style" :title="'Select ' + color.name"><span>{{ color.name }}</span></button>
+                                    </div>
+                                </div>
+                                <p class="form-input-hint mb-0" v-if="help"><small>Source: https://webgradients.com/</small></p>
+                            </div>
+
+                            <div class="sidebar-inner" v-if="(sidebar === 'colors')">
+                                <div class="color-generator">
+                                    <div class="color-item" v-for="(color, i) of cfg.x_colors">
+                                        <p class="form-input-hint mb-0" v-if="help"><small>Color #{{ (i+1) }} - fill input or click to select</small></p>
+                                        <input type="text" class="form-input color-picker mb-1" :id="'color-picker-' + i" v-model="cfg.x_colors[i]" :data-default-color="cfg.x_colors[i]" :style="{'background-color':cfg.x_colors[i],'color': invertColor(cfg.x_colors[i])}" @change="onUpdate" @click="onUpdate">
+                                    </div>
+                                </div>
+
+                                <div class="text-right">
+                                    <div class="btn-group">
+                                        <button class="btn btn-secondary btn-sm col-ml-auto" type="button" @click="addColor"><i data-feather="plus"></i>Add color</button>
+                                        <button class="btn btn-secondary btn-sm" type="button" @click="mirrorColors"><i data-feather="divide"></i>Mirror</button>
+                                        <button class="btn btn-secondary btn-sm" type="button" @click="shuffleColors"><i data-feather="refresh-ccw"></i>Shuffle</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="sidebar-inner">
+                                <div class="form-group">
+                                    <div class="input-group">
+                                        <button class="btn btn-error col-6 col-ml-auto mb-1" type="button" @click="reset"><i data-feather="trash-2"></i> Reset</button>
+                                    </div>
+                                    <div class="input-group">
+                                        <button class="btn btn-success col-12" type="button" @click="generatePng"><i data-feather="download"></i> Generate and download</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12 text-center">
+                        <p>Create by <a href="https://github.com/Mativve">Mativve</a></p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/trianglify/3.0.0/trianglify.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/app.js"></script>
+</body>
+</html>

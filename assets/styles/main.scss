@@ -1,0 +1,242 @@
+$main: #2f55fe;
+
+$white: #FFFFFF;
+$black: #111111;
+$bg: #f4f4f8;
+
+$font1: 'Megrim', cursive;
+$font2: 'Jost', sans-serif;
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    background-color: $bg;
+    font-family: $font2;
+    font-size: 16px;
+    color: $black;
+}
+
+a{
+    font-size: 1em;
+}
+
+hr{
+    border: 2px solid $bg;
+}
+
+.app{
+    max-width: 1300px;
+    width: 100%;
+    margin: 0 auto;
+
+    .navbar{
+        padding: 24px 0;
+
+        .navbar-brand{
+            font-size: 24px;
+            margin-bottom: 0;
+        }
+    }
+
+    // .main{
+    // }
+
+    .generator{
+        .columns{
+            align-items: flex-start;
+        }
+
+        .preview{
+            position: relative;
+            z-index: 1;
+
+            padding: 0;
+            background-color: $white;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.15);
+            border-radius: 8px 0 8px 8px;
+
+            canvas{
+                display: block;
+                width: 100%;
+                min-width: 32px;
+                max-width: 100%;
+
+                min-height: 32px;
+                max-height: 100%;
+                pointer-events: none;
+            }
+        }
+
+        .sidebar{
+            background-color: $white;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.15);
+            border-radius: 0 8px 8px 0;
+
+            &-inner{
+                padding: 16px;
+            }
+        }
+    }
+
+    .color{
+        &-list{
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            padding: 0 8px;
+
+            max-height: 400px;
+            overflow: hidden;
+            overflow-y: auto;
+
+            margin-top: 8px;
+            
+            span{
+                margin: 0;
+                display: none;
+            }
+
+            // &:hover{
+            //     .color-item-preview{
+            //         opacity: 0.5;
+
+            //         &:hover, &:focus{
+            //             opacity: 1;
+            //         }
+            //     }
+            // }
+        }
+
+        &-item{
+            &-preview{
+                width: 100%;
+
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                color: $white;
+
+                border: none;
+                cursor: pointer;
+                border-radius: 5px;
+                overflow: hidden;
+                
+                transform: scale(0.8);
+                opacity: 0.5;
+                transition: transform 0.4s ease, opacity 0.4s ease;
+
+                background-repeat: no-repeat;
+                background-size: cover;
+                background-position: center;
+
+                &:before {
+                    content: "";
+                    padding-bottom: 100%;
+                    display: inline-block;
+                    vertical-align: top;
+                }
+
+                &:hover, &:focus{
+                    opacity: 1;
+                }
+
+                &.selected{
+                    transform: scale(1);
+                    opacity: 1;
+                }
+            }
+
+            &:last-child{
+                margin-bottom: 0;
+            }
+        }
+
+        &-generator{
+            margin-bottom: 1em;
+
+            .color-item{
+                .color-picker{
+                    width: 100%;
+                    margin-bottom: 0;
+                    padding: 4px;
+                    border: 0 solid $bg;
+                }
+            }
+        }
+    }
+
+    .footer{
+        padding: 16px 0;
+        opacity: 0.35;
+
+        p{
+            margin: 0;
+        }
+    }
+}
+
+
+// 
+// Spectre replace
+// 
+.btn{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 1em;
+
+    svg{
+        display: inline-block;
+        margin-right: 8px;
+    }
+
+    span{
+        position: relative;
+        transform-origin: center;
+        display: inline-block;
+        margin-right: 8px;
+
+        svg{
+            margin: 0;
+        }
+    }
+
+    &.btn-sm{
+        svg{
+            width: 16px;
+        }
+    }
+}
+
+[data-theme="dark"]{
+    background-color: $black;
+    color: $white;
+
+    .btn{
+        display: inline-flex;
+
+        &.active{
+            background-color: #5755d9;
+            color: $white;
+            border-color: #5755d9;
+        }
+    }
+
+    .app{
+        .generator{
+            .sidebar{
+                background-color: lighten($black, 3%);
+            }
+        }
+    }
+    
+    .form-input:not(:placeholder-shown):invalid:focus{
+        background-color: $black;
+    }
+}
