@@ -1,7 +1,7 @@
 # Simple Low Poly Generator
 
 ## Demo
-
+[Click here to preview](https://mativve.github.io/Simple-Low-Poly-Generator/)
 
 ## Idea and creation process
 This year I decided to start my adventure with Vue 😎 That's why the idea for this generator came up.
