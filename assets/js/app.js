@@ -8,28 +8,34 @@
             help: false,
             customColors: false,
             pickGradient: 0,
-            arrayColors:[],
             downloading: false,
             darkTheme: false,
             pickrs: [],
+            canvas_zoom: false,
             cfg:{
                 width: 1920,
                 height: 1080,
-                cell_size: 120,
+                cell_size: 300,
                 variance: 1,
                 seed: null,
+                arrayColors:[],
                 x_colors: ["#ff9a9e", "#fad0c4", "#fad0c4"]
             },
             def_cfg:{
                 width: 1920,
                 height: 1080,
-                cell_size: 120,
+                cell_size: 300,
                 variance: 1,
                 seed: null,
+                arrayColors:[],
                 x_colors: ["#ff9a9e", "#fad0c4", "#fad0c4"]
             }
         },
         methods: {
+            zoomCanvas: function(){
+                this.canvas_zoom = !this.canvas_zoom;
+            },
+
             toggleHelp: function(){
                 this.help = !this.help;
             },
@@ -57,27 +63,39 @@
             },
 
             addColor: function(){
-                this.cfg.x_colors.push( this.cfg.x_colors[ this.cfg.x_colors.length-1 ] );
+                if( this.cfg.x_colors.length < 15 ){
+                    this.cfg.x_colors.push( this.cfg.x_colors[ this.cfg.x_colors.length-1 ] );
 
-                this.onUpdate();
-
-                setTimeout(this.reinitColorPicker, 100);
+                    this.onUpdate();
+    
+                    setTimeout(this.reinitColorPicker, 100);
+                }
+                else{
+                    alert("The limit of 15 colors has been reached!");
+                }
             },
 
             mirrorColors: function(){
-                const mirror = this.cfg.x_colors.reverse();
-                this.cfg.x_colors = [];
-                this.cfg.x_colors = mirror;
+                const mirror = this.cfg.x_colors.slice().reverse();
+                this.cfg.x_colors = mirror.slice();
 
                 this.onUpdate();
             },
 
             shuffleColors: function(){
-                const shuffled = shuffle(this.cfg.x_colors);
-                this.cfg.x_colors = [];
-                this.cfg.x_colors = shuffled;
+                const shuffled = shuffle(this.cfg.x_colors.slice());
+                this.cfg.x_colors = shuffled.slice();
 
                 this.onUpdate();
+            },
+
+            restoreColors: function(){
+                if( confirm("Are you sure to restore the default scheme of this palette?") ){
+
+                    this.cfg.x_colors = this.def_cfg.x_colors.slice();
+    
+                    this.onUpdate();
+                }
             },
 
             reinitColorPicker: function(){
@@ -89,12 +107,9 @@
                     let input = document.getElementById(id);
                     let color = el.getAttribute("data-default-color");
 
-                    console.log(id);
-
-                    
                     let p = Pickr.create({
                         el: "#"+id,
-                        theme: 'nano',
+                        theme: 'monolith',
                         useAsButton: true,
                         defaultRepresentation: 'HEX',
                         lockOpacity: true,
@@ -111,7 +126,7 @@
                                 cmyk: false,
                                 input: true,
                                 clear: false,
-                                save: true
+                                save: false
                             }
                         },
                     });
@@ -124,6 +139,8 @@
 
                         input.style.background = "#" + c;
                         input.style.color = app.invertColor("#" + c);
+
+                        app.onUpdate();
                     });
 
                     arr.push(p);
@@ -205,7 +222,8 @@
             setGradient: function(id){
                 if( this.cfg.width <= 0 && this.cfg.height <= 0 ) return false;
                 
-                this.cfg.x_colors = this.arrayColors[id].colors;
+                this.cfg.x_colors = this.cfg.arrayColors[id].colors.slice();
+                this.def_cfg.x_colors = this.cfg.arrayColors[id].colors.slice();
                 this.pickGradient = id;
 
                 this.renderTriangles();
@@ -249,8 +267,6 @@
             },
     
             onUpdate: function(){
-                console.log("UPDATE");
-
                 this.checkDimension();
                 this.checkCellSize();
                 this.checkSeed();
@@ -273,15 +289,15 @@
                         el.style = st.toString();
                     });
     
-                    app.arrayColors = colors;
-                    console.log(colors);
+                    app.cfg.arrayColors = colors;
+                    app.def_cfg.arrayColors = colors;
                 })
                 .catch(function(error){
                     console.log(error);
                 });
 
                 
-                this.setGradient( Math.floor(Math.random() * this.arrayColors.length) );
+                this.setGradient( Math.floor(Math.random() * this.cfg.arrayColors.length) );
             },
             
             invertColor: function(hex) {
@@ -302,7 +318,7 @@
             },
 
             reset: function(){
-                if( confirm("Are you sure?") ){
+                if( confirm("Are you sure to reset current changes?") ){
                     let seed = this.cfg.seed;
 
                     this.cfg = Object.assign({}, this.def_cfg);
